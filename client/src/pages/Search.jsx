@@ -127,21 +127,21 @@ export default function Search() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-6">
+      <div className="card-elevated p-8">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-6">
           Start Ad Research
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Industry */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Industry (optional)
             </label>
             <select
               value={formData.industry}
               onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="input-styled"
             >
               <option value="">Select an industry...</option>
               {INDUSTRIES.map(industry => (
@@ -152,13 +152,13 @@ export default function Search() {
 
           {/* Location */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Location
             </label>
             <select
               value={formData.location}
               onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="input-styled"
             >
               {LOCATIONS.map(loc => (
                 <option key={loc.value} value={loc.value}>{loc.label}</option>
@@ -168,13 +168,13 @@ export default function Search() {
 
           {/* Ad Count */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Number of Ads to Capture
             </label>
             <select
               value={formData.adCount}
               onChange={(e) => setFormData({ ...formData, adCount: parseInt(e.target.value) })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="input-styled"
             >
               {AD_COUNT_OPTIONS.map(opt => (
                 <option key={opt.value} value={opt.value}>
@@ -182,22 +182,23 @@ export default function Search() {
                 </option>
               ))}
             </select>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1.5">
               More ads = longer scrape time but better research data
             </p>
           </div>
 
           {/* AI Relevance Filter */}
-          <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
+          <div className="flex items-start gap-3 p-4 rounded-xl border border-purple-200/60 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(139, 92, 246, 0.08) 100%)' }}>
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-transparent pointer-events-none" />
             <input
               type="checkbox"
               id="filterRelevant"
               checked={formData.filterRelevant}
               onChange={(e) => setFormData({ ...formData, filterRelevant: e.target.checked })}
-              className="mt-1 h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+              className="relative mt-1 h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
             />
-            <label htmlFor="filterRelevant" className="cursor-pointer">
-              <span className="font-medium text-purple-900">Filter irrelevant ads with AI</span>
+            <label htmlFor="filterRelevant" className="cursor-pointer relative">
+              <span className="font-semibold text-purple-900">Filter irrelevant ads with AI</span>
               <p className="text-sm text-purple-700 mt-0.5">
                 Uses GPT-4o-mini to skip ads that don't match your search intent. Adds ~0.5s per ad but ensures quality results.
               </p>
@@ -206,7 +207,7 @@ export default function Search() {
 
           {/* Keywords */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-semibold text-gray-700 mb-2">
               Keywords / Competitor Names
               {formData.industry && INDUSTRY_KEYWORDS[formData.industry]?.default && (
                 <span className="text-gray-400 font-normal ml-2">
@@ -222,17 +223,16 @@ export default function Search() {
                 : "Enter competitor names, brand keywords, or product terms..."
               }
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="input-styled resize-none"
             />
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 mt-1.5">
               Examples: "Zillow", "Chicago real estate", "home buying tips"
             </p>
             {formData.industry && INDUSTRY_KEYWORDS[formData.industry]?.suggestions?.length > 0 && (
-              <div className="mt-2">
-                <span className="text-xs text-gray-500">Suggestions: </span>
-                <div className="flex flex-wrap gap-1 mt-1">
+              <div className="mt-3">
+                <span className="text-xs font-medium text-gray-500">Suggestions: </span>
+                <div className="flex flex-wrap gap-1.5 mt-1.5">
                   {INDUSTRY_KEYWORDS[formData.industry].suggestions.slice(0, 6).map(suggestion => {
-                    // Check if this suggestion is already in keywords
                     const currentKeywords = formData.keywords.split(',').map(k => k.trim().toLowerCase())
                     const isSelected = currentKeywords.includes(suggestion.toLowerCase())
 
@@ -242,7 +242,6 @@ export default function Search() {
                         type="button"
                         onClick={() => {
                           if (isSelected) {
-                            // Remove from keywords
                             const newKeywords = formData.keywords
                               .split(',')
                               .map(k => k.trim())
@@ -250,17 +249,20 @@ export default function Search() {
                               .join(', ')
                             setFormData({ ...formData, keywords: newKeywords })
                           } else {
-                            // Add to keywords
                             const current = formData.keywords.trim()
                             const newKeywords = current ? `${current}, ${suggestion}` : suggestion
                             setFormData({ ...formData, keywords: newKeywords })
                           }
                         }}
-                        className={`text-xs px-2 py-1 rounded transition-colors ${
+                        className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all duration-200 ${
                           isSelected
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                            ? 'text-white shadow-md'
+                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:shadow-sm'
                         }`}
+                        style={isSelected ? {
+                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                          boxShadow: '0 2px 8px -2px rgba(59, 130, 246, 0.5)'
+                        } : {}}
                       >
                         {suggestion}
                       </button>
@@ -275,11 +277,15 @@ export default function Search() {
           <button
             type="submit"
             disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${
-              isLoading
-                ? 'bg-gray-400 cursor-not-allowed'
-                : 'bg-blue-600 hover:bg-blue-700'
+            className={`w-full py-3.5 px-4 rounded-xl font-semibold text-white transition-all duration-200 ${
+              isLoading ? 'cursor-not-allowed opacity-60' : ''
             }`}
+            style={isLoading ? {
+              background: '#94a3b8'
+            } : {
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              boxShadow: '0 4px 14px -3px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+            }}
           >
             {isLoading ? (
               <span className="flex items-center justify-center">
@@ -297,9 +303,14 @@ export default function Search() {
       </div>
 
       {/* Info */}
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="font-medium text-blue-900 mb-2">How it works</h3>
-        <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
+      <div className="mt-6 card-glass p-5" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+        <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          How it works
+        </h3>
+        <ol className="text-sm text-blue-800 space-y-1.5 list-decimal list-inside">
           <li>Select an industry (keywords auto-fill) or enter your own keywords</li>
           <li>Watch as the browser navigates to Meta Ad Library</li>
           <li>Ads are automatically captured and saved</li>
@@ -308,8 +319,13 @@ export default function Search() {
       </div>
 
       {/* Location Tip */}
-      <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <h3 className="font-medium text-amber-900 mb-1">City-level search tip</h3>
+      <div className="mt-4 card-glass p-5" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
+        <h3 className="font-semibold text-amber-900 mb-1 flex items-center gap-2">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          </svg>
+          City-level search tip
+        </h3>
         <p className="text-sm text-amber-800">
           Meta Ad Library only filters by country. To find ads in a specific city, include the city name in your keywords (e.g., "Chicago real estate agent" or "Miami personal injury lawyer").
         </p>

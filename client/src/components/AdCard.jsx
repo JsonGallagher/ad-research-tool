@@ -59,50 +59,50 @@ export default function AdCard({ ad, onClick }) {
   return (
     <div
       onClick={onClick}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden cursor-pointer hover:shadow-md transition-shadow relative"
+      className="card-elevated overflow-hidden cursor-pointer relative group"
     >
       {isFavorite && (
-        <div className="absolute top-2 right-2 z-10 bg-yellow-400 text-yellow-900 p-1 rounded-full">
-          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <div className="absolute top-3 right-3 z-10 p-1.5 rounded-full" style={{ background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)', boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)' }}>
+          <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
             <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
           </svg>
         </div>
       )}
       {/* Screenshot */}
       {screenshotPath ? (
-        <div className="bg-gray-50 flex items-center justify-center min-h-[200px] max-h-[400px] overflow-hidden">
+        <div className="bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center min-h-[200px] max-h-[400px] overflow-hidden">
           <img
             src={`/screenshots/${screenshotPath}`}
             alt={`Ad by ${advertiserName}`}
-            className="w-full h-auto max-h-[400px] object-contain"
+            className="w-full h-auto max-h-[400px] object-contain transition-transform duration-300 group-hover:scale-[1.02]"
             onError={(e) => {
               e.target.parentElement.innerHTML = '<span class="text-gray-400 p-4">Image not found</span>'
             }}
           />
         </div>
       ) : (
-        <div className="h-[200px] bg-gray-100 flex items-center justify-center">
+        <div className="h-[200px] bg-gradient-to-b from-gray-100 to-gray-150 flex items-center justify-center">
           <span className="text-gray-400">No preview</span>
         </div>
       )}
 
       {/* Content */}
-      <div className="p-4">
+      <div className="p-4 bg-gradient-to-b from-white to-gray-50/50">
         <div className="flex items-center justify-between mb-2">
           <Link
             to={`/advertiser/${encodeURIComponent(advertiserName)}`}
             onClick={(e) => e.stopPropagation()}
-            className="font-medium text-gray-900 truncate flex-1 mr-2 hover:text-blue-600 hover:underline"
+            className="font-semibold text-gray-900 truncate flex-1 mr-2 hover:text-blue-600 transition-colors"
           >
             {advertiserName}
           </Link>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {landingDomain && (
-              <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded truncate max-w-[120px]" title={landingUrl}>
+              <span className="badge-glossy bg-amber-100 text-amber-800 truncate max-w-[120px]" title={landingUrl}>
                 {landingDomain}
               </span>
             )}
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded capitalize flex items-center gap-1">
+            <span className="badge-glossy bg-blue-100 text-blue-800 capitalize flex items-center gap-1">
               {formatIcon[mediaType] || formatIcon.image}
               {platform}
             </span>
@@ -110,23 +110,23 @@ export default function AdCard({ ad, onClick }) {
         </div>
         {ctaText && (
           <div className="mb-2">
-            <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+            <span className="badge-glossy bg-emerald-100 text-emerald-800">
               {ctaText}
             </span>
           </div>
         )}
 
-        <p className="text-sm text-gray-600 line-clamp-3">
+        <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
           {adCopy || 'Click to view details'}
         </p>
 
         {startDate && (
-          <div className="flex items-center justify-between mt-2">
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
             <p className="text-xs text-gray-400">
               Started: {startDate}
             </p>
             {daysRunning !== null && longevityColor && (
-              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${longevityColor.bg} ${longevityColor.text}`}>
+              <span className={`badge-glossy ${longevityColor.bg} ${longevityColor.text}`}>
                 {daysRunning}d running
               </span>
             )}
