@@ -3,6 +3,7 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { insertAd, updateSearchStatus } from '../db/index.js';
+import { checkAdRelevance } from '../ai/analyze.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -38,7 +39,7 @@ function randomDelay(min = 1000, max = 3000) {
 }
 
 export async function scrapeMetaAds(searchId, params, sendProgress) {
-  const { keywords, location, adCount = 25 } = params;
+  const { keywords, location, adCount = 25, filterRelevant = false } = params;
   const countryCode = getCountryCode(location || 'US');
   const screenshotsDir = join(__dirname, '..', '..', 'screenshots');
 
@@ -331,10 +332,32 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
     });
 
     let capturedCount = 0;
+    let skippedCount = 0;
 
     for (let i = 0; i < foundCards.length; i++) {
       try {
         const card = foundCards[i];
+
+        // Check relevance if filtering is enabled
+        if (filterRelevant) {
+          sendProgress(searchId, {
+            type: 'checking',
+            message: `Checking relevance: ${card.advertiser}`,
+            progress: (i / foundCards.length) * 100
+          });
+
+          const relevanceCheck = await checkAdRelevance(card.adCopy, card.advertiser, keywords);
+
+          if (!relevanceCheck.relevant) {
+            skippedCount++;
+            sendProgress(searchId, {
+              type: 'skipped',
+              message: `Skipped (not relevant): ${card.advertiser} - ${relevanceCheck.reason}`,
+              progress: (i / foundCards.length) * 100
+            });
+            continue;
+          }
+        }
 
         sendProgress(searchId, {
           type: 'capturing',
@@ -342,27 +365,79 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
           progress: (i / foundCards.length) * 100
         });
 
-        // Scroll so the card is at the TOP of viewport (hides the Meta header)
-        // Position it 80px from top to ensure it's fully visible and header is hidden
-        const scrollOffset = 80;
+        // Scroll to position the card in view
         await page.evaluate((scrollTo) => {
           window.scrollTo({ top: scrollTo, behavior: 'instant' });
-        }, card.top - scrollOffset);
+        }, card.top - 100);
 
-        await sleep(800);
+        await sleep(600);
 
         const screenshotId = uuidv4();
         const screenshotPath = `${screenshotId}.png`;
         const fullPath = join(screenshotsDir, screenshotPath);
 
-        // Use the stored card dimensions directly - more reliable than re-finding
-        // After scrolling, the card should be at approximately viewport Y = scrollOffset
-        const clipConfig = {
-          x: Math.max(0, card.left),
-          y: scrollOffset,
-          width: Math.min(card.width, 900),
-          height: Math.min(card.height, 800)
-        };
+        // Find the actual ad preview element (the white card with the ad content)
+        // Look for the inner ad card that contains "Sponsored" text
+        const adBounds = await page.evaluate((cardTop) => {
+          // Find all potential ad card elements currently visible
+          const viewportTop = window.scrollY;
+          const viewportBottom = viewportTop + window.innerHeight;
+
+          // Look for elements that look like ad cards (white background, contains key ad elements)
+          const candidates = document.querySelectorAll('div');
+
+          for (const el of candidates) {
+            const rect = el.getBoundingClientRect();
+            const absTop = rect.top + window.scrollY;
+
+            // Check if this element is near where we expect the card
+            if (Math.abs(absTop - cardTop) > 200) continue;
+
+            // Look for ad card characteristics
+            const text = el.innerText || '';
+            const hasSponsored = text.includes('Sponsored');
+            const hasAdContent = text.includes('Started running') || text.includes('Library ID');
+
+            // Check for reasonable ad card dimensions (not too wide, not too narrow)
+            if (hasSponsored && hasAdContent &&
+                rect.width >= 300 && rect.width <= 700 &&
+                rect.height >= 200 && rect.height <= 800) {
+
+              // Found a good candidate - return viewport-relative bounds
+              return {
+                x: Math.max(0, rect.left),
+                y: Math.max(0, rect.top),
+                width: rect.width,
+                height: rect.height,
+                found: true
+              };
+            }
+          }
+
+          return { found: false };
+        }, card.top);
+
+        let clipConfig;
+
+        if (adBounds.found) {
+          // Use the detected ad card bounds
+          clipConfig = {
+            x: Math.max(0, adBounds.x),
+            y: Math.max(0, adBounds.y),
+            width: Math.min(adBounds.width, 700),
+            height: Math.min(adBounds.height, 800)
+          };
+        } else {
+          // Fallback to original approach but with tighter bounds
+          // Center the clip on the expected ad location
+          const centerX = card.left + card.width / 2;
+          clipConfig = {
+            x: Math.max(0, centerX - 300),
+            y: 100,
+            width: 600,
+            height: Math.min(card.height, 700)
+          };
+        }
 
         await page.screenshot({
           path: fullPath,
@@ -419,10 +494,12 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
 
     updateSearchStatus(searchId, 'completed', capturedCount);
 
+    const skipMsg = skippedCount > 0 ? ` (${skippedCount} filtered as irrelevant)` : '';
     sendProgress(searchId, {
       type: 'complete',
-      message: `Completed! Captured ${capturedCount} ads.`,
-      totalAds: capturedCount
+      message: `Completed! Captured ${capturedCount} ads.${skipMsg}`,
+      totalAds: capturedCount,
+      skippedCount
     });
 
   } catch (error) {

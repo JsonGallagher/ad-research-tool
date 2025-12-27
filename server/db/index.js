@@ -194,34 +194,3 @@ export function getAdsForSearch(searchId) {
   return db.prepare('SELECT * FROM ads WHERE search_id = ? ORDER BY created_at DESC').all(searchId);
 }
 
-// Landing page functions
-export function saveLandingPage(pageData) {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO landing_pages (url, title, description, headline, primary_cta, key_messaging, screenshot_path, scraped_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-  `);
-
-  const result = stmt.run(
-    pageData.url,
-    pageData.title || '',
-    pageData.description || '',
-    pageData.headline || '',
-    pageData.primaryCta || '',
-    JSON.stringify(pageData.keyMessaging || []),
-    pageData.screenshotPath || ''
-  );
-
-  return result.lastInsertRowid;
-}
-
-export function getLandingPageByUrl(url) {
-  const page = db.prepare('SELECT * FROM landing_pages WHERE url = ?').get(url);
-  if (page && page.key_messaging) {
-    try {
-      page.key_messaging = JSON.parse(page.key_messaging);
-    } catch {
-      page.key_messaging = [];
-    }
-  }
-  return page;
-}

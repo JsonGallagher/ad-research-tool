@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 // Calculate days running from start date
 function calculateDaysRunning(startDate) {
   if (!startDate) return null
@@ -87,9 +89,13 @@ export default function AdCard({ ad, onClick }) {
       {/* Content */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-medium text-gray-900 truncate flex-1 mr-2">
+          <Link
+            to={`/advertiser/${encodeURIComponent(advertiserName)}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-medium text-gray-900 truncate flex-1 mr-2 hover:text-blue-600 hover:underline"
+          >
             {advertiserName}
-          </h3>
+          </Link>
           <div className="flex items-center gap-1 flex-shrink-0">
             {landingDomain && (
               <span className="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded truncate max-w-[120px]" title={landingUrl}>

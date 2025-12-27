@@ -3,9 +3,8 @@ import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { initDb, getDb, toggleFavorite, getFavorites, saveInsight, getInsightsForAd, getLatestInsightForAd, getAdById, getAdsForSearch, saveLandingPage, getLandingPageByUrl } from './db/index.js';
+import { initDb, getDb, toggleFavorite, getFavorites, saveInsight, getInsightsForAd, getLatestInsightForAd, getAdById, getAdsForSearch } from './db/index.js';
 import { scrapeMetaAds } from './scrapers/meta.js';
-import { scrapeLandingPage } from './scrapers/landing.js';
 import { analyzeAd, analyzeMultipleAds, generateAggregateInsights } from './ai/analyze.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -72,7 +71,7 @@ export function sendProgress(searchId, data) {
 
 // Start a new search
 app.post('/api/search', async (req, res) => {
-  const { industry, location, keywords, adCount = 25 } = req.body;
+  const { industry, location, keywords, adCount = 25, filterRelevant = false } = req.body;
 
   const db = getDb();
   const result = db.prepare(`
@@ -85,7 +84,7 @@ app.post('/api/search', async (req, res) => {
   res.json({ searchId, status: 'started' });
 
   // Start scraping in background
-  scrapeMetaAds(searchId, { industry, location, keywords, adCount }, sendProgress)
+  scrapeMetaAds(searchId, { industry, location, keywords, adCount, filterRelevant }, sendProgress)
     .catch(err => {
       console.error('Scraping error:', err);
       sendProgress(searchId, { type: 'error', message: err.message });
@@ -144,6 +143,101 @@ app.post('/api/ads/:id/favorite', (req, res) => {
 app.get('/api/favorites', (req, res) => {
   const favorites = getFavorites();
   res.json(favorites);
+});
+
+// Get all ads for a specific advertiser (across all searches)
+app.get('/api/advertiser/:name', (req, res) => {
+  const { name } = req.params;
+  const db = getDb();
+
+  // Get all ads from this advertiser
+  const ads = db.prepare(`
+    SELECT ads.*, searches.industry, searches.keywords
+    FROM ads
+    LEFT JOIN searches ON ads.search_id = searches.id
+    WHERE LOWER(ads.advertiser_name) = LOWER(?)
+    ORDER BY ads.start_date DESC
+  `).all(name);
+
+  if (ads.length === 0) {
+    return res.status(404).json({ error: 'No ads found for this advertiser' });
+  }
+
+  // Get AI insights for these ads
+  const adIds = ads.map(a => a.id);
+  const insights = db.prepare(`
+    SELECT ad_id, insight_type, insight_data, created_at
+    FROM ad_insights
+    WHERE ad_id IN (${adIds.map(() => '?').join(',')})
+    AND insight_type = 'full_analysis'
+    ORDER BY created_at DESC
+  `).all(...adIds);
+
+  // Map insights to ads
+  const insightMap = {};
+  insights.forEach(i => {
+    if (!insightMap[i.ad_id]) {
+      try {
+        insightMap[i.ad_id] = JSON.parse(i.insight_data);
+      } catch {
+        insightMap[i.ad_id] = null;
+      }
+    }
+  });
+
+  // Calculate aggregate stats
+  const ctaCounts = {};
+  const landingDomains = {};
+  let totalDaysRunning = 0;
+  let adsWithDates = 0;
+
+  ads.forEach(ad => {
+    // CTA tracking
+    if (ad.cta_text) {
+      ctaCounts[ad.cta_text] = (ctaCounts[ad.cta_text] || 0) + 1;
+    }
+
+    // Landing domain tracking
+    if (ad.landing_url) {
+      try {
+        const domain = new URL(ad.landing_url).hostname.replace('www.', '');
+        landingDomains[domain] = (landingDomains[domain] || 0) + 1;
+      } catch {}
+    }
+
+    // Days running calculation
+    if (ad.start_date) {
+      const start = new Date(ad.start_date);
+      if (!isNaN(start.getTime())) {
+        const days = Math.floor((Date.now() - start) / (1000 * 60 * 60 * 24));
+        if (days >= 0) {
+          totalDaysRunning += days;
+          adsWithDates++;
+        }
+      }
+    }
+  });
+
+  // Format stats
+  const ctaDistribution = Object.entries(ctaCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([cta, count]) => ({ cta, count, percent: Math.round((count / ads.length) * 100) }));
+
+  const domains = Object.entries(landingDomains)
+    .sort((a, b) => b[1] - a[1])
+    .map(([domain, count]) => ({ domain, count }));
+
+  res.json({
+    advertiser: name,
+    totalAds: ads.length,
+    avgDaysRunning: adsWithDates > 0 ? Math.round(totalDaysRunning / adsWithDates) : 0,
+    ctaDistribution,
+    landingDomains: domains,
+    ads: ads.map(ad => ({
+      ...ad,
+      analysis: insightMap[ad.id] || null
+    }))
+  });
 });
 
 // AI Analysis endpoints
@@ -313,64 +407,6 @@ app.post('/api/searches/:searchId/aggregate-insights', async (req, res) => {
     console.error('Aggregate insights error:', error);
     res.status(500).json({ error: error.message });
   }
-});
-
-// Landing page endpoints
-
-// Get or scrape landing page data
-app.post('/api/landing-page', async (req, res) => {
-  const { url, force = false } = req.body;
-
-  if (!url) {
-    return res.status(400).json({ error: 'URL is required' });
-  }
-
-  try {
-    // Check cache first unless force refresh
-    if (!force) {
-      const cached = getLandingPageByUrl(url);
-      if (cached) {
-        return res.json({
-          cached: true,
-          data: cached
-        });
-      }
-    }
-
-    // Scrape the landing page
-    const pageData = await scrapeLandingPage(url);
-
-    if (pageData.error) {
-      return res.status(500).json({ error: pageData.error });
-    }
-
-    // Save to database
-    saveLandingPage(pageData);
-
-    res.json({
-      cached: false,
-      data: pageData
-    });
-  } catch (error) {
-    console.error('Landing page error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Get landing page by URL (cached only)
-app.get('/api/landing-page', (req, res) => {
-  const { url } = req.query;
-
-  if (!url) {
-    return res.status(400).json({ error: 'URL is required' });
-  }
-
-  const page = getLandingPageByUrl(url);
-  if (!page) {
-    return res.status(404).json({ error: 'Landing page not found in cache' });
-  }
-
-  res.json(page);
 });
 
 app.listen(PORT, () => {

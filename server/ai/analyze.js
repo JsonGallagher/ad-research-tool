@@ -1,11 +1,52 @@
 import OpenAI from 'openai';
 
 const apiKey = process.env.OPENAI_API_KEY;
-if (!apiKey) {
-  throw new Error('OPENAI_API_KEY is required. Set it in your .env file.');
+let openai = null;
+
+if (apiKey) {
+  openai = new OpenAI({ apiKey });
 }
 
-const openai = new OpenAI({ apiKey });
+// Quick relevance check - returns true if ad is relevant to search keywords
+export async function checkAdRelevance(adCopy, advertiser, searchKeywords) {
+  if (!openai) {
+    console.warn('OpenAI API key not set, skipping relevance check');
+    return { relevant: true, reason: 'API key not configured' };
+  }
+
+  if (!adCopy || adCopy.length < 10) {
+    return { relevant: true, reason: 'Too short to evaluate' };
+  }
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content: 'You determine if an ad is relevant to search keywords. Respond with JSON only: {"relevant": true/false, "reason": "brief reason"}'
+        },
+        {
+          role: 'user',
+          content: `Search keywords: "${searchKeywords}"
+Advertiser: ${advertiser || 'Unknown'}
+Ad text: "${adCopy.substring(0, 300)}"
+
+Is this ad relevant to someone searching for "${searchKeywords}"? Consider industry, topic, and intent.`
+        }
+      ],
+      temperature: 0.1,
+      max_tokens: 100
+    });
+
+    const content = response.choices[0]?.message?.content || '';
+    const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    return JSON.parse(jsonStr);
+  } catch (error) {
+    console.error('Relevance check error:', error.message);
+    return { relevant: true, reason: 'Check failed, including ad' };
+  }
+}
 
 const ANALYSIS_PROMPT = `You are an expert advertising analyst. Analyze the following ad copy and provide insights in JSON format.
 
@@ -31,6 +72,10 @@ Provide your analysis in the following JSON format (no markdown, just pure JSON)
 }`;
 
 export async function analyzeAd(ad) {
+  if (!openai) {
+    return { error: 'OpenAI API key not configured' };
+  }
+
   const adCopy = ad.ad_copy || ad.adCopy || '';
   const advertiser = ad.advertiser_name || ad.advertiserName || 'Unknown';
   const cta = ad.cta_text || ad.ctaText || 'None';
@@ -119,6 +164,10 @@ export async function analyzeMultipleAds(ads) {
 }
 
 export async function generateAggregateInsights(analyses) {
+  if (!openai) {
+    return { error: 'OpenAI API key not configured' };
+  }
+
   const validAnalyses = analyses.filter(a => a.analysis && !a.analysis.error);
 
   if (validAnalyses.length === 0) {

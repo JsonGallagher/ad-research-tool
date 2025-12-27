@@ -162,41 +162,43 @@ ALTER TABLE ads ADD COLUMN landing_page_id INTEGER REFERENCES landing_pages(id);
 
 ---
 
-## New Dependencies
+## Dependencies
 
+Already installed:
 ```json
 {
   "server": {
-    "@anthropic-ai/sdk": "latest"
+    "openai": "^6.15.0"
   }
 }
 ```
 
-**Environment variable needed:** `ANTHROPIC_API_KEY`
+**Environment variable needed:** `OPENAI_API_KEY`
 
 ---
 
-## Implementation Order
+## Implementation Status
 
-1. **Phase 1.1-1.2** - More ads + longevity (foundational, no new deps)
-2. **Phase 2.1-2.2** - AI analysis (high value, uses existing data)
-3. **Phase 4.1** - Filtering (makes large datasets usable)
-4. **Phase 3** - Landing pages (extends data collection)
-5. **Phase 2.3 + 4.2** - Aggregate insights + advertiser view
+All phases complete:
+
+- [x] **Phase 1.1-1.2** - More ads + longevity (foundational, no new deps)
+- [x] **Phase 2.1-2.2** - AI analysis with OpenAI gpt-4o-mini
+- [x] **Phase 4.1** - Filtering (makes large datasets usable)
+- [x] ~~**Phase 3** - Landing pages~~ (removed - unreliable, low value)
+- [x] **Phase 2.3 + 4.2** - Aggregate insights + advertiser view
 
 ---
 
-## Key Files to Modify
+## Key Files Modified
 
-| File | Changes |
-|------|---------|
-| `server/scrapers/meta.js` | More scrolls, longevity calc, format detection |
-| `server/db/index.js` | New tables, schema updates |
-| `server/index.js` | New API endpoints |
-| `server/ai/analyze.js` | NEW - Claude API integration |
-| `server/scrapers/landing.js` | NEW - Landing page scraper |
-| `client/src/pages/Search.jsx` | Ad count selector |
-| `client/src/pages/Results.jsx` | Filters, AI UI, landing preview |
-| `client/src/components/AdCard.jsx` | Longevity badge |
-| `client/src/pages/Advertiser.jsx` | NEW - Advertiser profile page |
-| `client/src/App.jsx` | New routes |
+| File | Status |
+|------|--------|
+| `server/scrapers/meta.js` | Done - scrolls, longevity, format detection |
+| `server/db/index.js` | Done - ad_insights table |
+| `server/index.js` | Done - /advertiser/:name + all AI endpoints |
+| `server/ai/analyze.js` | Done - OpenAI gpt-4o-mini integration |
+| `client/src/pages/Search.jsx` | Done - Ad count selector (25/50/100) |
+| `client/src/pages/Results.jsx` | Done - Filters, AI UI, advertiser links |
+| `client/src/components/AdCard.jsx` | Done - Longevity badge, advertiser links |
+| `client/src/pages/Advertiser.jsx` | Done - Advertiser deep dive page |
+| `client/src/App.jsx` | Done - All routes including /advertiser/:name |

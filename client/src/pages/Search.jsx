@@ -84,7 +84,8 @@ export default function Search() {
     industry: '',
     location: 'US',
     keywords: '',
-    adCount: 25
+    adCount: 25,
+    filterRelevant: false
   })
 
   const handleSubmit = async (e) => {
@@ -186,6 +187,23 @@ export default function Search() {
             </p>
           </div>
 
+          {/* AI Relevance Filter */}
+          <div className="flex items-start gap-3 p-4 bg-purple-50 rounded-lg border border-purple-200">
+            <input
+              type="checkbox"
+              id="filterRelevant"
+              checked={formData.filterRelevant}
+              onChange={(e) => setFormData({ ...formData, filterRelevant: e.target.checked })}
+              className="mt-1 h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+            />
+            <label htmlFor="filterRelevant" className="cursor-pointer">
+              <span className="font-medium text-purple-900">Filter irrelevant ads with AI</span>
+              <p className="text-sm text-purple-700 mt-0.5">
+                Uses GPT-4o-mini to skip ads that don't match your search intent. Adds ~0.5s per ad but ensures quality results.
+              </p>
+            </label>
+          </div>
+
           {/* Keywords */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -213,16 +231,41 @@ export default function Search() {
               <div className="mt-2">
                 <span className="text-xs text-gray-500">Suggestions: </span>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {INDUSTRY_KEYWORDS[formData.industry].suggestions.slice(0, 6).map(suggestion => (
-                    <button
-                      key={suggestion}
-                      type="button"
-                      onClick={() => setFormData({ ...formData, keywords: suggestion })}
-                      className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
-                    >
-                      {suggestion}
-                    </button>
-                  ))}
+                  {INDUSTRY_KEYWORDS[formData.industry].suggestions.slice(0, 6).map(suggestion => {
+                    // Check if this suggestion is already in keywords
+                    const currentKeywords = formData.keywords.split(',').map(k => k.trim().toLowerCase())
+                    const isSelected = currentKeywords.includes(suggestion.toLowerCase())
+
+                    return (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            // Remove from keywords
+                            const newKeywords = formData.keywords
+                              .split(',')
+                              .map(k => k.trim())
+                              .filter(k => k.toLowerCase() !== suggestion.toLowerCase())
+                              .join(', ')
+                            setFormData({ ...formData, keywords: newKeywords })
+                          } else {
+                            // Add to keywords
+                            const current = formData.keywords.trim()
+                            const newKeywords = current ? `${current}, ${suggestion}` : suggestion
+                            setFormData({ ...formData, keywords: newKeywords })
+                          }
+                        }}
+                        className={`text-xs px-2 py-1 rounded transition-colors ${
+                          isSelected
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                        }`}
+                      >
+                        {suggestion}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             )}
