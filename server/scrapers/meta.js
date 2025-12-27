@@ -43,8 +43,9 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
   const countryCode = getCountryCode(location || 'US');
   const screenshotsDir = join(__dirname, '..', '..', 'screenshots');
 
-  // Calculate scrolls needed (roughly 4-5 ads load per scroll)
-  const maxScrolls = Math.min(Math.ceil(adCount / 4), 25);
+  // Calculate scrolls needed - be generous to ensure we load enough ads
+  // Meta loads ~3-4 ads per scroll, so we scroll extra to be safe
+  const maxScrolls = Math.min(Math.ceil(adCount / 3) + 5, 40);
   const maxAdsToCapture = adCount;
 
   sendProgress(searchId, {
@@ -89,7 +90,7 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
     await page.waitForLoadState('networkidle', { timeout: 45000 }).catch(() => {});
     await randomDelay(2000, 3000);
 
-    // Scroll to load more ads
+    // Scroll to load more ads - keep scrolling until we have enough
     sendProgress(searchId, {
       type: 'status',
       message: `Scrolling to load ads (targeting ${maxAdsToCapture})...`,
@@ -97,15 +98,46 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
       totalSteps: 5
     });
 
-    for (let i = 0; i < maxScrolls; i++) {
+    let scrollCount = 0;
+    let loadedAdCount = 0;
+    let noNewAdsCount = 0; // Track consecutive scrolls with no new ads
+
+    while (scrollCount < maxScrolls && loadedAdCount < maxAdsToCapture * 1.5) {
       await page.evaluate(() => window.scrollBy(0, 1000));
-      await randomDelay(1500, 2500);
+      await randomDelay(1200, 2000);
+      scrollCount++;
+
+      // Check how many ads are currently loaded (quick count)
+      const currentCount = await page.evaluate(() => {
+        let count = 0;
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(el => {
+          if (el.innerText && el.innerText.includes('Started running on') &&
+              el.innerText.length < 2000) {
+            count++;
+          }
+        });
+        return Math.floor(count / 3); // Rough estimate (multiple elements per ad)
+      });
+
+      // Check if we found new ads
+      if (currentCount > loadedAdCount) {
+        loadedAdCount = currentCount;
+        noNewAdsCount = 0;
+      } else {
+        noNewAdsCount++;
+      }
 
       sendProgress(searchId, {
         type: 'scroll',
-        message: `Loading more ads... (${i + 1}/${maxScrolls})`,
-        progress: ((i + 1) / maxScrolls) * 100
+        message: `Loading ads... found ~${loadedAdCount} (target: ${maxAdsToCapture})`,
+        progress: Math.min((loadedAdCount / maxAdsToCapture) * 100, 95)
       });
+
+      // Stop if we have enough ads or haven't found new ones in 5 scrolls
+      if (loadedAdCount >= maxAdsToCapture * 1.2 || noNewAdsCount >= 5) {
+        break;
+      }
     }
 
     // Scroll back to top
@@ -306,7 +338,7 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
       return { cards: uniqueCards, debug: debugInfo };
     });
 
-    console.log(`Found ${adCards.cards.length} ad cards from detection`);
+    console.log(`Found ${adCards.cards.length} ad cards from detection (requested: ${maxAdsToCapture})`);
     console.log('Debug:', JSON.stringify(adCards.debug));
 
     const foundCards = adCards.cards.slice(0, maxAdsToCapture);
@@ -323,6 +355,14 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
       updateSearchStatus(searchId, 'completed', 0);
       await browser.close();
       return;
+    }
+
+    // Warn if we found fewer ads than requested
+    if (foundCards.length < maxAdsToCapture) {
+      sendProgress(searchId, {
+        type: 'warning',
+        message: `Only found ${foundCards.length} ads (requested ${maxAdsToCapture}). Proceeding with available ads.`
+      });
     }
 
     sendProgress(searchId, {
