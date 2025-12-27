@@ -837,21 +837,37 @@ export default function Results() {
         <div className="mb-6 space-y-4">
           {/* Stats Overview */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white">
-              <div className="text-3xl font-bold">{analysis.totalAds}</div>
-              <div className="text-blue-100 text-sm">Total Ads</div>
+            <div className="relative overflow-hidden rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)', boxShadow: '0 4px 14px -3px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255,255,255,0.3)' }}>
+              {/* Glass refraction overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 30%, 0 60%)' }} />
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-sm" />
+              <div className="relative text-3xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{analysis.totalAds}</div>
+              <div className="relative text-blue-100 text-sm font-medium">Total Ads</div>
             </div>
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white">
-              <div className="text-3xl font-bold">{analysis.uniqueAdvertisers}</div>
-              <div className="text-purple-100 text-sm">Advertisers</div>
+            <div className="relative overflow-hidden rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)', boxShadow: '0 4px 14px -3px rgba(139, 92, 246, 0.5), inset 0 1px 0 rgba(255,255,255,0.3)' }}>
+              {/* Glass refraction overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 30%, 0 60%)' }} />
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-sm" />
+              <div className="relative text-3xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{analysis.uniqueAdvertisers}</div>
+              <div className="relative text-purple-100 text-sm font-medium">Advertisers</div>
             </div>
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white">
-              <div className="text-3xl font-bold">{analysis.copyLength.avg}</div>
-              <div className="text-green-100 text-sm">Avg Words/Ad</div>
+            <div className="relative overflow-hidden rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', boxShadow: '0 4px 14px -3px rgba(16, 185, 129, 0.5), inset 0 1px 0 rgba(255,255,255,0.3)' }}>
+              {/* Glass refraction overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 30%, 0 60%)' }} />
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-sm" />
+              <div className="relative text-3xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{analysis.copyLength.avg}</div>
+              <div className="relative text-green-100 text-sm font-medium">Avg Words/Ad</div>
             </div>
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-4 text-white">
-              <div className="text-3xl font-bold">{analysis.ctaDistribution.length}</div>
-              <div className="text-orange-100 text-sm">CTA Types</div>
+            <div className="relative overflow-hidden rounded-2xl p-4 text-white" style={{ background: 'linear-gradient(135deg, #f97316 0%, #ea580c 100%)', boxShadow: '0 4px 14px -3px rgba(249, 115, 22, 0.5), inset 0 1px 0 rgba(255,255,255,0.3)' }}>
+              {/* Glass refraction overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-transparent" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 30%, 0 60%)' }} />
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/10" />
+              <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-sm" />
+              <div className="relative text-3xl font-bold" style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{analysis.ctaDistribution.length}</div>
+              <div className="relative text-orange-100 text-sm font-medium">CTA Types</div>
             </div>
           </div>
 
