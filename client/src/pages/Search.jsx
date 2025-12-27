@@ -126,209 +126,231 @@ export default function Search() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="card-elevated p-8">
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-6">
-          Start Ad Research
-        </h2>
+    <div className="max-w-5xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:items-stretch">
+        {/* Main Form - takes 2 columns on desktop */}
+        <div className="lg:col-span-2 h-full">
+          <div className="card-elevated p-6 h-full flex flex-col">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-5">
+              Start Ad Research
+            </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Industry */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Industry (optional)
-            </label>
-            <select
-              value={formData.industry}
-              onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-              className="input-styled"
-            >
-              <option value="">Select an industry...</option>
-              {INDUSTRIES.map(industry => (
-                <option key={industry} value={industry}>{industry}</option>
-              ))}
-            </select>
-          </div>
+            <form onSubmit={handleSubmit} className="space-y-4 flex-1 flex flex-col">
+              {/* Industry & Location - side by side */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Industry (optional)
+                  </label>
+                  <select
+                    value={formData.industry}
+                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    className="input-styled"
+                  >
+                    <option value="">Select an industry...</option>
+                    {INDUSTRIES.map(industry => (
+                      <option key={industry} value={industry}>{industry}</option>
+                    ))}
+                  </select>
+                </div>
 
-          {/* Location */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Location
-            </label>
-            <select
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              className="input-styled"
-            >
-              {LOCATIONS.map(loc => (
-                <option key={loc.value} value={loc.value}>{loc.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Ad Count */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Number of Ads to Capture
-            </label>
-            <select
-              value={formData.adCount}
-              onChange={(e) => setFormData({ ...formData, adCount: parseInt(e.target.value) })}
-              className="input-styled"
-            >
-              {AD_COUNT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label} ({opt.estimate})
-                </option>
-              ))}
-            </select>
-            <p className="text-sm text-gray-500 mt-1.5">
-              More ads = longer scrape time but better research data
-            </p>
-          </div>
-
-          {/* AI Relevance Filter */}
-          <div className="flex items-start gap-3 p-4 rounded-xl border border-purple-200/60 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(139, 92, 246, 0.08) 100%)' }}>
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-transparent pointer-events-none" />
-            <input
-              type="checkbox"
-              id="filterRelevant"
-              checked={formData.filterRelevant}
-              onChange={(e) => setFormData({ ...formData, filterRelevant: e.target.checked })}
-              className="relative mt-1 h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-            />
-            <label htmlFor="filterRelevant" className="cursor-pointer relative">
-              <span className="font-semibold text-purple-900">Filter irrelevant ads with AI</span>
-              <p className="text-sm text-purple-700 mt-0.5">
-                Uses GPT-4o-mini to skip ads that don't match your search intent. Adds ~0.5s per ad but ensures quality results.
-              </p>
-            </label>
-          </div>
-
-          {/* Keywords */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Keywords / Competitor Names
-              {formData.industry && INDUSTRY_KEYWORDS[formData.industry]?.default && (
-                <span className="text-gray-400 font-normal ml-2">
-                  (optional - will use "{INDUSTRY_KEYWORDS[formData.industry].default}" if empty)
-                </span>
-              )}
-            </label>
-            <textarea
-              value={formData.keywords}
-              onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
-              placeholder={formData.industry && INDUSTRY_KEYWORDS[formData.industry]?.default
-                ? `Leave empty to search "${INDUSTRY_KEYWORDS[formData.industry].default}" or enter custom keywords...`
-                : "Enter competitor names, brand keywords, or product terms..."
-              }
-              rows={3}
-              className="input-styled resize-none"
-            />
-            <p className="text-sm text-gray-500 mt-1.5">
-              Examples: "Zillow", "Chicago real estate", "home buying tips"
-            </p>
-            {formData.industry && INDUSTRY_KEYWORDS[formData.industry]?.suggestions?.length > 0 && (
-              <div className="mt-3">
-                <span className="text-xs font-medium text-gray-500">Suggestions: </span>
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {INDUSTRY_KEYWORDS[formData.industry].suggestions.slice(0, 6).map(suggestion => {
-                    const currentKeywords = formData.keywords.split(',').map(k => k.trim().toLowerCase())
-                    const isSelected = currentKeywords.includes(suggestion.toLowerCase())
-
-                    return (
-                      <button
-                        key={suggestion}
-                        type="button"
-                        onClick={() => {
-                          if (isSelected) {
-                            const newKeywords = formData.keywords
-                              .split(',')
-                              .map(k => k.trim())
-                              .filter(k => k.toLowerCase() !== suggestion.toLowerCase())
-                              .join(', ')
-                            setFormData({ ...formData, keywords: newKeywords })
-                          } else {
-                            const current = formData.keywords.trim()
-                            const newKeywords = current ? `${current}, ${suggestion}` : suggestion
-                            setFormData({ ...formData, keywords: newKeywords })
-                          }
-                        }}
-                        className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all duration-200 ${
-                          isSelected
-                            ? 'text-white shadow-md'
-                            : 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:shadow-sm'
-                        }`}
-                        style={isSelected ? {
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                          boxShadow: '0 2px 8px -2px rgba(59, 130, 246, 0.5)'
-                        } : {}}
-                      >
-                        {suggestion}
-                      </button>
-                    )
-                  })}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Location
+                  </label>
+                  <select
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    className="input-styled"
+                  >
+                    {LOCATIONS.map(loc => (
+                      <option key={loc.value} value={loc.value}>{loc.label}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            )}
+
+              {/* Ad Count & AI Filter - side by side */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                    Ads to Capture
+                  </label>
+                  <select
+                    value={formData.adCount}
+                    onChange={(e) => setFormData({ ...formData, adCount: parseInt(e.target.value) })}
+                    className="input-styled"
+                  >
+                    {AD_COUNT_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label} ({opt.estimate})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* AI Relevance Filter - compact */}
+                <div className="flex items-center gap-3 p-3 rounded-xl border border-purple-200/60 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, rgba(147, 51, 234, 0.05) 0%, rgba(139, 92, 246, 0.08) 100%)' }}>
+                  <input
+                    type="checkbox"
+                    id="filterRelevant"
+                    checked={formData.filterRelevant}
+                    onChange={(e) => setFormData({ ...formData, filterRelevant: e.target.checked })}
+                    className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
+                  />
+                  <label htmlFor="filterRelevant" className="cursor-pointer">
+                    <span className="font-semibold text-purple-900 text-sm">AI Relevance Filter</span>
+                    <p className="text-xs text-purple-700">Skip irrelevant ads</p>
+                  </label>
+                </div>
+              </div>
+
+              {/* Keywords */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                  Keywords / Competitor Names
+                  {formData.industry && INDUSTRY_KEYWORDS[formData.industry]?.default && (
+                    <span className="text-gray-400 font-normal ml-2 text-xs">
+                      (will use "{INDUSTRY_KEYWORDS[formData.industry].default}" if empty)
+                    </span>
+                  )}
+                </label>
+                <textarea
+                  value={formData.keywords}
+                  onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
+                  placeholder={formData.industry && INDUSTRY_KEYWORDS[formData.industry]?.default
+                    ? `Leave empty to search "${INDUSTRY_KEYWORDS[formData.industry].default}" or enter custom keywords...`
+                    : "Enter competitor names, brand keywords, or product terms..."
+                  }
+                  rows={2}
+                  className="input-styled resize-none"
+                />
+                {formData.industry && INDUSTRY_KEYWORDS[formData.industry]?.suggestions?.length > 0 && (
+                  <div className="mt-2">
+                    <div className="flex flex-wrap gap-1.5">
+                      {INDUSTRY_KEYWORDS[formData.industry].suggestions.slice(0, 8).map(suggestion => {
+                        const currentKeywords = formData.keywords.split(',').map(k => k.trim().toLowerCase())
+                        const isSelected = currentKeywords.includes(suggestion.toLowerCase())
+
+                        return (
+                          <button
+                            key={suggestion}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                const newKeywords = formData.keywords
+                                  .split(',')
+                                  .map(k => k.trim())
+                                  .filter(k => k.toLowerCase() !== suggestion.toLowerCase())
+                                  .join(', ')
+                                setFormData({ ...formData, keywords: newKeywords })
+                              } else {
+                                const current = formData.keywords.trim()
+                                const newKeywords = current ? `${current}, ${suggestion}` : suggestion
+                                setFormData({ ...formData, keywords: newKeywords })
+                              }
+                            }}
+                            className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all duration-200 ${
+                              isSelected
+                                ? 'text-white shadow-md'
+                                : 'bg-blue-50 text-blue-700 hover:bg-blue-100'
+                            }`}
+                            style={isSelected ? {
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                              boxShadow: '0 2px 8px -2px rgba(59, 130, 246, 0.5)'
+                            } : {}}
+                          >
+                            {suggestion}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Spacer to push button down */}
+              <div className="flex-1" />
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`w-full py-3 px-4 rounded-xl font-semibold text-white transition-all duration-200 ${
+                  isLoading ? 'cursor-not-allowed opacity-60' : ''
+                }`}
+                style={isLoading ? {
+                  background: '#94a3b8'
+                } : {
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  boxShadow: '0 4px 14px -3px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                }}
+              >
+                {isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Starting...
+                  </span>
+                ) : (
+                  'Start Research'
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Sidebar - info cards */}
+        <div className="space-y-4 flex flex-col">
+          {/* How it works */}
+          <div className="card-glass p-5" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
+            <h3 className="font-semibold text-blue-900 mb-3 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              How it works
+            </h3>
+            <ol className="text-sm text-blue-800 space-y-2 list-decimal list-inside">
+              <li>Select industry or enter keywords</li>
+              <li>Browser opens Meta Ad Library</li>
+              <li>Ads captured automatically</li>
+              <li>Review, filter & export</li>
+            </ol>
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-3.5 px-4 rounded-xl font-semibold text-white transition-all duration-200 ${
-              isLoading ? 'cursor-not-allowed opacity-60' : ''
-            }`}
-            style={isLoading ? {
-              background: '#94a3b8'
-            } : {
-              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-              boxShadow: '0 4px 14px -3px rgba(59, 130, 246, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
-            }}
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Starting...
-              </span>
-            ) : (
-              'Start Research'
-            )}
-          </button>
-        </form>
-      </div>
+          {/* Location Tip */}
+          <div className="card-glass p-5" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
+            <h3 className="font-semibold text-amber-900 mb-2 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              City-level tip
+            </h3>
+            <p className="text-sm text-amber-800">
+              Include city in keywords for local targeting (e.g., "Chicago real estate agent").
+            </p>
+          </div>
 
-      {/* Info */}
-      <div className="mt-6 card-glass p-5" style={{ background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.04) 100%)', borderColor: 'rgba(59, 130, 246, 0.2)' }}>
-        <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          How it works
-        </h3>
-        <ol className="text-sm text-blue-800 space-y-1.5 list-decimal list-inside">
-          <li>Select an industry (keywords auto-fill) or enter your own keywords</li>
-          <li>Watch as the browser navigates to Meta Ad Library</li>
-          <li>Ads are automatically captured and saved</li>
-          <li>Review, filter, analyze with AI, and export your research</li>
-        </ol>
-      </div>
-
-      {/* Location Tip */}
-      <div className="mt-4 card-glass p-5" style={{ background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.04) 100%)', borderColor: 'rgba(245, 158, 11, 0.2)' }}>
-        <h3 className="font-semibold text-amber-900 mb-1 flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-          </svg>
-          City-level search tip
-        </h3>
-        <p className="text-sm text-amber-800">
-          Meta Ad Library only filters by country. To find ads in a specific city, include the city name in your keywords (e.g., "Chicago real estate agent" or "Miami personal injury lawyer").
-        </p>
+          {/* Quick Stats */}
+          <div className="card-glass p-5" style={{ background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+            <h3 className="font-semibold text-emerald-900 mb-2 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              What you get
+            </h3>
+            <ul className="text-sm text-emerald-800 space-y-1">
+              <li>- Ad screenshots & copy</li>
+              <li>- Landing page URLs</li>
+              <li>- CTA buttons used</li>
+              <li>- Days running (longevity)</li>
+              <li>- AI analysis & insights</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   )

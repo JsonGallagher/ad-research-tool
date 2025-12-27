@@ -855,6 +855,101 @@ export default function Results() {
             </div>
           </div>
 
+          {/* Batch Analysis Progress - show at top when analyzing */}
+          {batchProgress && !batchProgress.complete && (
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <svg className="animate-spin w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span className="text-purple-800">Analyzing ads with AI... ({batchProgress.current} / {batchProgress.total})</span>
+              </div>
+            </div>
+          )}
+
+          {/* AI Aggregate Insights - Prominent position at top */}
+          {aggregateInsights && (
+            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 rounded-xl border-2 border-purple-300 p-5 shadow-lg">
+              <h3 className="font-bold text-gray-900 mb-4 flex items-center gap-2 text-lg">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                AI-Powered Competitive Insights
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Key Takeaways - Most important, show first */}
+                {aggregateInsights.keyTakeaways && aggregateInsights.keyTakeaways.length > 0 && (
+                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 shadow-sm md:col-span-2 border border-green-200">
+                    <h4 className="text-sm font-semibold text-green-800 mb-2">Key Takeaways for Your Ads</h4>
+                    <ul className="list-disc list-inside text-sm text-green-700 space-y-1">
+                      {aggregateInsights.keyTakeaways.map((takeaway, i) => (
+                        <li key={i}>{takeaway}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Dominant Themes */}
+                {aggregateInsights.dominantThemes && (
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Dominant Messaging Themes</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {aggregateInsights.dominantThemes.map((theme, i) => (
+                        <span key={i} className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-sm">
+                          {theme}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Top Techniques */}
+                {aggregateInsights.topTechniques && (
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Top Copywriting Techniques</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {aggregateInsights.topTechniques.map((tech, i) => (
+                        <span key={i} className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md text-sm">
+                          {tech}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Audience Patterns */}
+                {aggregateInsights.audiencePatterns && (
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Target Audience Patterns</h4>
+                    <p className="text-gray-700 text-sm">{aggregateInsights.audiencePatterns}</p>
+                  </div>
+                )}
+
+                {/* Competitive Landscape */}
+                {aggregateInsights.competitiveLandscape && (
+                  <div className="bg-white rounded-lg p-4 shadow-sm">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Competitive Landscape</h4>
+                    <p className="text-gray-700 text-sm">{aggregateInsights.competitiveLandscape}</p>
+                  </div>
+                )}
+
+                {/* Opportunity Gaps */}
+                {aggregateInsights.opportunityGaps && aggregateInsights.opportunityGaps.length > 0 && (
+                  <div className="bg-white rounded-lg p-4 shadow-sm md:col-span-2">
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Opportunity Gaps</h4>
+                    <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                      {aggregateInsights.opportunityGaps.map((gap, i) => (
+                        <li key={i}>{gap}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Longevity Overview - Focus on winners */}
           {analysis.longevity && analysis.longevity.longest.length > 0 && (
             <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl border border-emerald-200 p-5">
@@ -1041,50 +1136,56 @@ export default function Results() {
           </div>
 
           {/* Bottom Row - Offers & Domains */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Offers Detected */}
-            {analysis.offerSummary.length > 0 && (
-              <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-5">
-                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                  </svg>
-                  Offers Detected
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.offerSummary.map(({ type, count }) => (
-                    <span
-                      key={type}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-amber-800 rounded-lg text-sm font-medium shadow-sm"
-                    >
-                      {type}
-                      <span className="bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded text-xs">{count}</span>
-                    </span>
-                  ))}
+          {(analysis.offerSummary.length > 0 || analysis.topDomains.length > 0) && (
+            <div className={`grid grid-cols-1 gap-4 ${
+              analysis.offerSummary.length > 0 && analysis.topDomains.length > 0
+                ? 'md:grid-cols-2'
+                : ''
+            }`}>
+              {/* Offers Detected */}
+              {analysis.offerSummary.length > 0 && (
+                <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200 p-5">
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                    </svg>
+                    Offers Detected
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.offerSummary.map(({ type, count }) => (
+                      <span
+                        key={type}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white text-amber-800 rounded-lg text-sm font-medium shadow-sm"
+                      >
+                        {type}
+                        <span className="bg-amber-100 text-amber-600 px-1.5 py-0.5 rounded text-xs">{count}</span>
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Landing Page Domains */}
-            {analysis.topDomains.length > 0 && (
-              <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl border border-gray-200 p-5">
-                <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                  <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
-                  </svg>
-                  Landing Page Domains
-                </h3>
-                <div className="space-y-2">
-                  {analysis.topDomains.map(({ domain, count }) => (
-                    <div key={domain} className="flex items-center justify-between p-2 bg-white rounded-lg">
-                      <span className="text-sm font-medium text-gray-700 truncate">{domain}</span>
-                      <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{count}</span>
-                    </div>
-                  ))}
+              {/* Landing Page Domains */}
+              {analysis.topDomains.length > 0 && (
+                <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl border border-gray-200 p-5">
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                    </svg>
+                    Landing Page Domains
+                  </h3>
+                  <div className="space-y-2">
+                    {analysis.topDomains.map(({ domain, count }) => (
+                      <div key={domain} className="flex items-center justify-between p-2 bg-white rounded-lg">
+                        <span className="text-sm font-medium text-gray-700 truncate">{domain}</span>
+                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">{count}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
           {/* Copy Length Stats */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
@@ -1112,100 +1213,6 @@ export default function Results() {
             </div>
           </div>
 
-          {/* AI Aggregate Insights */}
-          {aggregateInsights && (
-            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl border border-purple-200 p-5">
-              <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                </svg>
-                AI-Powered Competitive Insights
-              </h3>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Dominant Themes */}
-                {aggregateInsights.dominantThemes && (
-                  <div className="bg-white rounded-lg p-4 shadow-sm">
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Dominant Messaging Themes</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {aggregateInsights.dominantThemes.map((theme, i) => (
-                        <span key={i} className="px-2 py-1 bg-purple-100 text-purple-800 rounded-md text-sm">
-                          {theme}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Top Techniques */}
-                {aggregateInsights.topTechniques && (
-                  <div className="bg-white rounded-lg p-4 shadow-sm">
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Top Copywriting Techniques</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {aggregateInsights.topTechniques.map((tech, i) => (
-                        <span key={i} className="px-2 py-1 bg-indigo-100 text-indigo-800 rounded-md text-sm">
-                          {tech}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Audience Patterns */}
-                {aggregateInsights.audiencePatterns && (
-                  <div className="bg-white rounded-lg p-4 shadow-sm">
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Target Audience Patterns</h4>
-                    <p className="text-gray-700 text-sm">{aggregateInsights.audiencePatterns}</p>
-                  </div>
-                )}
-
-                {/* Competitive Landscape */}
-                {aggregateInsights.competitiveLandscape && (
-                  <div className="bg-white rounded-lg p-4 shadow-sm">
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Competitive Landscape</h4>
-                    <p className="text-gray-700 text-sm">{aggregateInsights.competitiveLandscape}</p>
-                  </div>
-                )}
-
-                {/* Opportunity Gaps */}
-                {aggregateInsights.opportunityGaps && aggregateInsights.opportunityGaps.length > 0 && (
-                  <div className="bg-white rounded-lg p-4 shadow-sm md:col-span-2">
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Opportunity Gaps</h4>
-                    <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                      {aggregateInsights.opportunityGaps.map((gap, i) => (
-                        <li key={i}>{gap}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Key Takeaways */}
-                {aggregateInsights.keyTakeaways && aggregateInsights.keyTakeaways.length > 0 && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 shadow-sm md:col-span-2 border border-green-200">
-                    <h4 className="text-sm font-medium text-green-800 mb-2">Key Takeaways for Your Ads</h4>
-                    <ul className="list-disc list-inside text-sm text-green-700 space-y-1">
-                      {aggregateInsights.keyTakeaways.map((takeaway, i) => (
-                        <li key={i}>{takeaway}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Batch Analysis Progress */}
-          {batchProgress && !batchProgress.complete && (
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <svg className="animate-spin w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span className="text-purple-800">Analyzing ads with AI... ({batchProgress.current} / {batchProgress.total})</span>
-              </div>
-            </div>
-          )}
         </div>
       )}
 

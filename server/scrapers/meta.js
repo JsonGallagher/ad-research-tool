@@ -323,18 +323,22 @@ export async function scrapeMetaAds(searchId, params, sendProgress) {
         }
       });
 
-      // Sort by position and deduplicate by proximity
-      cards.sort((a, b) => a.top - b.top);
+      // Sort by position (top to bottom, left to right)
+      cards.sort((a, b) => a.top - b.top || a.left - b.left);
 
-      // Remove duplicates that are too close together
+      // Remove duplicates - must be close in BOTH vertical AND horizontal position
+      // Meta shows ads in a grid, so same-row ads have similar top but different left
       const uniqueCards = [];
       for (const card of cards) {
-        const isDuplicate = uniqueCards.some(c => Math.abs(c.top - card.top) < 100);
+        const isDuplicate = uniqueCards.some(c =>
+          Math.abs(c.top - card.top) < 50 && Math.abs(c.left - card.left) < 50
+        );
         if (!isDuplicate) {
           uniqueCards.push(card);
         }
       }
 
+      debugInfo.afterDedup = uniqueCards.length;
       return { cards: uniqueCards, debug: debugInfo };
     });
 
