@@ -48,6 +48,7 @@ OPENAI_API_KEY=sk-your-api-key-here
 ```
 
 The OpenAI key is optional. Without it:
+
 - AI relevance filtering will be skipped
 - Ad analysis features will be disabled
 - Core scraping functionality works fine
@@ -80,7 +81,7 @@ npm run dev
 
 ## Project Structure
 
-```
+```text
 ad-research-tool/
 ├── client/                 # React frontend
 │   ├── src/
@@ -100,21 +101,20 @@ ad-research-tool/
 
 ## API Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/search` | Start a new ad search |
-| GET | `/api/searches` | List all searches |
-| GET | `/api/searches/:id/ads` | Get ads for a search |
-| GET | `/api/ads` | Get all ads with filters |
-| GET | `/api/advertiser/:name` | Get advertiser profile |
-| POST | `/api/ads/:id/analyze` | Analyze ad with AI |
-| POST | `/api/ads/:id/favorite` | Toggle favorite |
-| GET | `/api/events/:searchId` | SSE stream for progress |
+| Method | Endpoint                | Description              |
+| ------ | ----------------------- | ------------------------ |
+| POST   | `/api/search`           | Start a new ad search    |
+| GET    | `/api/searches`         | List all searches        |
+| GET    | `/api/searches/:id/ads` | Get ads for a search     |
+| GET    | `/api/ads`              | Get all ads with filters |
+| GET    | `/api/advertiser/:name` | Get advertiser profile   |
+| POST   | `/api/ads/:id/analyze`  | Analyze ad with AI       |
+| POST   | `/api/ads/:id/favorite` | Toggle favorite          |
+| GET    | `/api/events/:searchId` | SSE stream for progress  |
 
 ## Supported Locations
 
-- United States, United Kingdom, Canada, Australia
-- Germany, France, Spain, Brazil, Mexico
+- United States, United Kingdom, Canada, Australia, Germany, France, Spain, Brazil, Mexico
 
 ## Tips
 
