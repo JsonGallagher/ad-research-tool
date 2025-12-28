@@ -2,6 +2,12 @@
 
 A competitive ad intelligence tool that scrapes Meta Ad Library, captures screenshots, and provides AI-powered analysis of competitor advertising strategies.
 
+## Demo
+
+![Search Interface](demo/search.png)
+
+![Demo Video](demo/demo-video.gif)
+
 ## Features
 
 - **Meta Ad Library Scraping** - Automatically browse and capture ads from Facebook/Instagram Ad Library
