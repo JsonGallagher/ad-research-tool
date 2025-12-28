@@ -17,7 +17,7 @@ A competitive ad intelligence tool that scrapes Meta Ad Library, captures screen
 - **Advertiser Profiles** - Deep dive into specific advertisers across all your searches
 - **Advanced Filtering** - Filter by advertiser, CTA, format, ad age, and favorites
 - **Longevity Tracking** - Identify "proven winners" based on how long ads have been running
-- **Export** - Download results as CSV
+- **Export** - Download results as CSV for further analysis
 
 ## Tech Stack
 
