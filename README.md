@@ -6,7 +6,7 @@ A competitive ad intelligence tool that scrapes Meta Ad Library, captures screen
 
 ![Search Interface](demo/search.png)
 
-![Demo Video](demo/demo-video.gif)
+![Demo Video](demo/output.gif)
 
 ## Features
 
